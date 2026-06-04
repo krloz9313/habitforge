@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HabitForge">
+<title>HabitForge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--s1:#141414;--s2:#1e1e1e;--s3:#252525;--b1:#2a2a2a;--b2:#383838;--t1:#f0ede8;--t2:#888;--t3:#555;--green:#b8f058;--gd:#1a2a08;--gm:#7ab030;--amber:#f0a030;--ad:#3a2800;--red:#f05050;--rd:#3a1010;--blue:#60b0f8;--bd:#102038;--purple:#c090f8;--pd:#1e1030;--r:12px;--rsm:8px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;font-size:15px}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit}
+.screen{display:none;flex-direction:column;height:100dvh;overflow:hidden}
+.screen.active{display:flex}
+.scroll{flex:1;overflow-y:auto;padding:0 16px 100px;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.nav{position:fixed;bottom:0;left:0;right:0;background:var(--s1);border-top:1px solid var(--b1);display:flex;padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;color:var(--t3);transition:color .15s}
+.nb.active{color:var(--green)}
+.nb svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nb span{font-size:10px;font-family:'Syne',sans-serif}
+.hdr{padding:52px 16px 16px}
+.hdr-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.app-logo{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--t1)}
+.app-logo em{color:var(--green);font-style:normal}
+.chip{font-size:12px;color:var(--t2);background:var(--s2);padding:5px 10px;border-radius:20px;border:1px solid var(--b1)}
+.sec{margin-bottom:22px}
+.sec-t{font-family:'Syne',sans-serif;font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+.stat{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:12px 8px;text-align:center}
+.stat-v{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--t1)}
+.stat-v.g{color:var(--green)}.stat-v.a{color:var(--amber)}.stat-v.p{color:var(--purple)}
+.stat-l{font-size:10px;color:var(--t2);margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+/* COUPLE BANNER */
+.couple-banner{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:14px;margin-bottom:20px}
+.cb-top{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.cb-heart{font-size:18px}
+.cb-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t1);flex:1}
+.cb-streak{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--purple)}
+.cb-streak-l{font-size:10px;color:var(--t2);text-align:right}
+.cb-players{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cb-player{background:var(--s2);border-radius:var(--rsm);padding:10px;text-align:center;border:1px solid var(--b1)}
+.cb-player.you{border-color:var(--green)}
+.cb-player.partner{border-color:var(--purple)}
+.cb-pname{font-size:11px;color:var(--t2);margin-bottom:4px}
+.cb-pstreak{font-family:'Syne',sans-serif;font-size:22px;font-weight:800}
+.cb-player.you .cb-pstreak{color:var(--green)}
+.cb-player.partner .cb-pstreak{color:var(--purple)}
+.cb-pstatus{font-size:10px;color:var(--t2);margin-top:2px}
+.joker-row{display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--b1)}
+.joker-icon{font-size:20px}
+.joker-info{flex:1;font-size:12px;color:var(--t2);line-height:1.4}
+.joker-info strong{color:var(--t1)}
+.joker-btn{padding:7px 12px;border-radius:var(--rsm);border:1px solid var(--purple);color:var(--purple);font-size:12px;font-family:'Syne',sans-serif;font-weight:700;background:var(--pd)}
+.joker-btn:disabled{opacity:.4;cursor:not-allowed}
+/* HABIT CARDS */
+.hc{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:14px;margin-bottom:8px;transition:border-color .2s}
+.hc.done{border-color:var(--green);background:#0d1a05}
+.hc.done .hc-name{color:var(--green)}
+.hc-head{display:flex;align-items:center;gap:12px}
+.hc-icon{width:40px;height:40px;border-radius:10px;background:var(--s2);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.hc.done .hc-icon{background:var(--gd);border-color:var(--green)}
+.hc-meta{flex:1;min-width:0}
+.hc-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:2px;color:var(--t1)}
+.hc-sub{font-size:11px;color:var(--t2)}
+.hc-btns{display:flex;gap:6px;align-items:center}
+.start-btn{background:var(--s2);border:1px solid var(--b2);border-radius:var(--rsm);padding:7px 11px;font-size:12px;font-family:'Syne',sans-serif;font-weight:600;color:var(--t2);transition:all .15s;white-space:nowrap}
+.start-btn:hover{border-color:var(--green);color:var(--green)}
+.hc.done .start-btn{background:var(--gd);border-color:var(--green);color:var(--green)}
+.del-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--b1);background:var(--s2);color:var(--t3);font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.del-btn:hover{border-color:var(--red);color:var(--red)}
+.dots-row{display:flex;gap:4px;margin-top:10px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--b1)}
+.dot.ok{background:var(--green)}.dot.te{border:1px solid var(--t3)}
+/* PIN */
+.pin-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:14px;margin-bottom:20px}
+.pin-label{font-size:11px;color:var(--t2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.pin-d{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;letter-spacing:8px;color:var(--green);background:var(--gd);border:1px solid var(--green);border-radius:var(--rsm);padding:12px 16px;text-align:center}
+.pin-d.locked{color:var(--t3);background:var(--s2);border-color:var(--b1);letter-spacing:4px;filter:blur(5px);user-select:none}
+.pin-hint{font-size:11px;color:var(--t2);margin-top:8px;text-align:center}
+/* ADD HABIT SCREEN */
+.form-wrap{padding:52px 16px 100px}
+.form-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px}
+.form-sub{font-size:13px;color:var(--t2);margin-bottom:24px}
+.field{margin-bottom:18px}
+.field-label{font-size:12px;color:var(--t2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.field input,.field select,.field textarea{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:var(--rsm);padding:11px 14px;color:var(--t1);font-size:14px;outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green)}
+.field select option{background:var(--s2)}
+.icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.icon-opt{width:100%;aspect-ratio:1;border-radius:var(--rsm);border:1px solid var(--b2);background:var(--s2);font-size:22px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.icon-opt.sel{border-color:var(--green);background:var(--gd)}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mode-opt{border:1px solid var(--b2);background:var(--s2);border-radius:var(--rsm);padding:12px;text-align:center;transition:all .15s}
+.mode-opt.sel{border-color:var(--green);background:var(--gd)}
+.mode-opt-icon{font-size:22px;margin-bottom:4px}
+.mode-opt-name{font-size:12px;font-family:'Syne',sans-serif;font-weight:600;color:var(--t1)}
+.mode-opt-desc{font-size:10px;color:var(--t2);margin-top:2px}
+.target-row{display:flex;align-items:center;gap:10px;margin-top:8px}
+.target-row input{width:80px;text-align:center}
+.target-row span{font-size:13px;color:var(--t2)}
+.save-btn{width:100%;padding:14px;border-radius:var(--r);background:var(--green);color:#0a0a0a;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;margin-top:8px;transition:opacity .15s}
+.save-btn:hover{opacity:.85}
+/* SESSION */
+.sess-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+.sess-name{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--t1);margin-bottom:4px}
+.sess-sub{font-size:13px;color:var(--t2);margin-bottom:32px}
+.ring-wrap{position:relative;width:210px;height:210px;margin:0 auto 32px}
+.ring-wrap svg{position:absolute;top:0;left:0;transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--b1);stroke-width:8}
+.ring-p{fill:none;stroke:var(--green);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .5s linear}
+.ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.t-disp{font-family:'Syne',sans-serif;font-size:46px;font-weight:800;color:var(--t1);line-height:1}
+.t-sub{font-size:12px;color:var(--t2);margin-top:4px}
+.steps-big{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--green);margin-top:4px}
+.dur-row{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap;justify-content:center}
+.dur-btn{padding:8px 16px;border-radius:20px;border:1px solid var(--b1);background:var(--s2);color:var(--t2);font-size:13px;font-family:'Syne',sans-serif;font-weight:600;transition:all .15s}
+.dur-btn.sel{background:var(--gd);border-color:var(--green);color:var(--green)}
+.pomo-dots{display:flex;gap:6px;justify-content:center;margin-bottom:16px}
+.pdot{width:12px;height:12px;border-radius:50%;background:var(--b2)}
+.pdot.done{background:var(--green)}.pdot.cur{background:var(--amber)}
+.sess-btns{display:flex;gap:10px}
+.sb{flex:1;padding:14px;border-radius:var(--r);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;border:1px solid var(--b2);background:var(--s1);color:var(--t2);transition:all .15s}
+.sb.prim{background:var(--green);border-color:var(--green);color:#0a0a0a}
+.sb.dang{border-color:var(--red);color:var(--red)}
+.sb:disabled{opacity:.4;cursor:not-allowed}
+/* PARTNER SCREEN */
+.partner-wrap{padding:52px 16px 100px}
+.partner-code-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:16px;margin-bottom:16px}
+.pcc-label{font-size:11px;color:var(--t2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.pcc-code{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:8px;color:var(--purple);background:var(--pd);border:1px solid var(--purple);border-radius:var(--rsm);padding:12px;text-align:center;margin-bottom:10px}
+.pcc-btn{width:100%;padding:10px;border-radius:var(--rsm);border:1px solid var(--b2);background:var(--s2);color:var(--t2);font-size:13px;font-family:'Syne',sans-serif;font-weight:600;transition:all .15s;margin-bottom:8px}
+.pcc-btn:hover{border-color:var(--purple);color:var(--purple)}
+.connect-row{display:flex;gap:8px;margin-bottom:8px}
+.connect-row input{flex:1;background:var(--s2);border:1px solid var(--b2);border-radius:var(--rsm);padding:10px 12px;color:var(--t1);font-size:14px;outline:none}
+.connect-row input:focus{border-color:var(--purple)}
+.connect-btn{padding:10px 16px;border-radius:var(--rsm);background:var(--purple);color:#0a0a0a;font-family:'Syne',sans-serif;font-weight:700;font-size:13px}
+.leaderboard{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden;margin-bottom:16px}
+.lb-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--b1)}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;width:28px;text-align:center}
+.lb-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;flex-shrink:0}
+.lb-info{flex:1}
+.lb-name{font-size:14px;font-family:'Syne',sans-serif;font-weight:600;color:var(--t1)}
+.lb-sub{font-size:11px;color:var(--t2)}
+.lb-streak{font-family:'Syne',sans-serif;font-size:20px;font-weight:800}
+.monthly-card{background:var(--s1);border:1px solid var(--amber);border-radius:var(--r);padding:16px;margin-bottom:16px;background:var(--ad)}
+.mc-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.mc-icon{font-size:20px}
+.mc-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--amber);flex:1}
+.mc-winner{font-size:13px;color:var(--t2);line-height:1.5}
+/* SETUP SCREEN */
+.setup-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;min-height:100dvh;text-align:center}
+.setup-logo{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--t1);margin-bottom:6px}
+.setup-logo em{color:var(--green);font-style:normal}
+.setup-sub{font-size:14px;color:var(--t2);margin-bottom:40px;line-height:1.6}
+.setup-field{width:100%;max-width:320px;margin-bottom:12px}
+.setup-field label{display:block;font-size:12px;color:var(--t2);margin-bottom:6px;text-align:left;text-transform:uppercase;letter-spacing:.05em}
+.setup-field input{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:var(--rsm);padding:12px 16px;color:var(--t1);font-size:16px;outline:none}
+.setup-field input:focus{border-color:var(--green)}
+.setup-btn{width:100%;max-width:320px;padding:14px;border-radius:var(--r);background:var(--green);color:#0a0a0a;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-top:8px}
+/* OVERLAY */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px}
+.overlay.show{display:flex}
+.ov-icon{font-size:72px;margin-bottom:16px;animation:pop .4s cubic-bezier(.34,1.56,.64,1)}
+.ov-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--green);margin-bottom:8px}
+.ov-sub{font-size:14px;color:var(--t2);margin-bottom:32px;line-height:1.7;white-space:pre-line}
+.ov-btn{padding:14px 32px;border-radius:var(--r);background:var(--green);color:#0a0a0a;font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:150;align-items:flex-end}
+.modal-bg.show{display:flex}
+.modal{background:var(--s1);border-radius:var(--r) var(--r) 0 0;border:1px solid var(--b2);padding:20px;width:100%;max-height:80dvh;overflow-y:auto}
+.modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{font-size:22px;color:var(--t2);background:none;border:none}
+.rules-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--b1)}
+.rules-row:last-child{border-bottom:none}
+.rules-label{font-size:13px;color:var(--t1)}
+.rules-val{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--green)}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.pulse{animation:pulse 1.5s infinite}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="setup-screen" style="display:none;min-height:100dvh">
+  <div class="setup-wrap">
+    <div class="setup-logo">Habit<em>Forge</em></div>
+    <div class="setup-sub">Tu app de hábitos en pareja.<br>Primero, ¿cómo te llamas?</div>
+    <div class="setup-field"><label>Tu nombre</label><input id="setup-name" placeholder="Ej: Carlos" maxlength="16"></div>
+    <button class="setup-btn" onclick="finishSetup()">Empezar →</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="screen" id="screen-home">
+  <div class="scroll">
+    <div class="hdr">
+      <div class="hdr-top">
+        <div class="app-logo">Habit<em>Forge</em></div>
+        <div class="chip" id="home-date"></div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-v g" id="st-done">0/0</div><div class="stat-l">Hoy</div></div>
+      <div class="stat"><div class="stat-v a" id="st-streak">0🔥</div><div class="stat-l">Mi racha</div></div>
+      <div class="stat"><div class="stat-v p" id="st-couple">0💑</div><div class="stat-l">En pareja</div></div>
+    </div>
+    <div class="sec">
+      <div class="sec-t">Racha en pareja</div>
+      <div class="couple-banner" id="couple-banner"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-t">Mis hábitos de hoy</div>
+      <div id="habits-list"></div>
+      <button style="width:100%;padding:12px;border-radius:var(--r);border:1px dashed var(--b2);background:transparent;color:var(--t3);font-size:13px;font-family:'Syne',sans-serif;font-weight:600;margin-top:4px" onclick="goTo('add')">+ Agregar hábito</button>
+    </div>
+    <div class="sec">
+      <div class="sec-t">PIN de redes sociales</div>
+      <div class="pin-card">
+        <div class="pin-label">PIN del día — para Digital Wellbeing</div>
+        <div id="pin-d" class="pin-d locked">••••••</div>
+        <div class="pin-hint" id="pin-hint">Completa al menos 1 hábito para desbloquear</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SESSION -->
+<div class="screen" id="screen-session">
+  <div class="sess-wrap">
+    <div class="sess-name" id="sess-name">Hábito</div>
+    <div class="sess-sub" id="sess-sub">Elige duración</div>
+    <div class="dur-row" id="dur-row"></div>
+    <div class="pomo-dots" id="pomo-dots" style="display:none"></div>
+    <div class="ring-wrap">
+      <svg viewBox="0 0 210 210" width="210" height="210">
+        <circle class="ring-bg" cx="105" cy="105" r="90"/>
+        <circle class="ring-p" cx="105" cy="105" r="90" id="ring-p" stroke-dasharray="565.5" stroke-dashoffset="0"/>
+      </svg>
+      <div class="ring-inner">
+        <div class="t-disp" id="t-disp">--:--</div>
+        <div class="t-sub" id="t-sub">listo</div>
+        <div class="steps-big" id="steps-big" style="display:none">0 pasos</div>
+      </div>
+    </div>
+    <div class="sess-btns">
+      <button class="sb prim" id="sb-start" onclick="sessionStart()">Iniciar</button>
+      <button class="sb dang" onclick="sessionCancel()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAREJA -->
+<div class="screen" id="screen-partner">
+  <div class="scroll">
+    <div class="hdr"><div class="hdr-top"><div class="app-logo">Habit<em>Forge</em></div></div></div>
+    <div class="partner-wrap" style="padding-top:0">
+      <div class="sec">
+        <div class="sec-t">Desafío del mes 🏆</div>
+        <div class="monthly-card" id="monthly-card"></div>
+      </div>
+      <div class="sec">
+        <div class="sec-t">Marcador</div>
+        <div class="leaderboard" id="leaderboard"></div>
+      </div>
+      <div class="sec">
+        <div class="sec-t">Conectar con pareja</div>
+        <div class="partner-code-card">
+          <div class="pcc-label">Tu código de pareja</div>
+          <div class="pcc-code" id="my-code">------</div>
+          <button class="pcc-btn" onclick="copyCode()">Copiar código</button>
+          <div style="font-size:11px;color:var(--t2);margin-bottom:10px;text-align:center">Comparte este código con tu pareja para sincronizar rachas</div>
+          <div class="pcc-label">Ingresar código de tu pareja</div>
+          <div class="connect-row">
+            <input id="partner-code-input" placeholder="Código de 6 letras" maxlength="6" style="text-transform:uppercase">
+            <button class="connect-btn" onclick="connectPartner()">Conectar</button>
+          </div>
+          <div id="connect-status" style="font-size:12px;color:var(--t2);text-align:center;margin-top:6px"></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-t">Reglas del juego</div>
+        <div style="background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:14px">
+          <div class="rules-row"><span class="rules-label">Racha pareja</span><span class="rules-val" id="rule-couple-streak">Ambos completan</span></div>
+          <div class="rules-row"><span class="rules-label">Si uno falla</span><span class="rules-val" id="rule-fail">Comodín mensual</span></div>
+          <div class="rules-row"><span class="rules-label">Premio del mes</span><span class="rules-val" id="rule-prize">Medalla del desafío</span></div>
+          <div class="rules-row"><span class="rules-label">Comodines este mes</span><span class="rules-val" id="rule-jokers">1 disponible</span></div>
+          <button onclick="showRulesModal()" style="width:100%;margin-top:12px;padding:9px;border-radius:var(--rsm);border:1px solid var(--b2);background:var(--s2);color:var(--t2);font-size:12px;font-family:'Syne',sans-serif;font-weight:600">Editar reglas del juego</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD HABIT -->
+<div class="screen" id="screen-add">
+  <div class="scroll">
+    <div class="hdr">
+      <div class="hdr-top">
+        <div class="app-logo" style="font-size:20px">Nuevo hábito</div>
+        <button onclick="goTo('home')" style="color:var(--t2);font-size:13px">Cancelar</button>
+      </div>
+    </div>
+    <div class="form-wrap" style="padding-top:0">
+      <div class="field">
+        <div class="field-label">Nombre del hábito</div>
+        <input id="h-name" placeholder="Ej: Meditar, Beber agua..." maxlength="30">
+      </div>
+      <div class="field">
+        <div class="field-label">Ícono</div>
+        <div class="icon-grid" id="icon-grid"></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Tipo de verificación</div>
+        <div class="mode-grid" id="mode-grid"></div>
+      </div>
+      <div id="target-config" style="display:none">
+        <div class="field">
+          <div class="field-label" id="target-label">Meta</div>
+          <div class="target-row">
+            <input type="number" id="target-val" value="30" min="1" max="999">
+            <span id="target-unit">minutos</span>
+          </div>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveHabit()">Guardar hábito</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY ÉXITO -->
+<div class="overlay" id="overlay">
+  <div class="ov-icon" id="ov-icon">🎉</div>
+  <div class="ov-title" id="ov-title">¡Completado!</div>
+  <div class="ov-sub" id="ov-sub"></div>
+  <button class="ov-btn" onclick="closeOverlay()">Ver recompensa</button>
+</div>
+
+<!-- MODAL REGLAS -->
+<div class="modal-bg" id="rules-modal">
+  <div class="modal">
+    <div class="modal-title">Reglas del juego <button class="modal-close" onclick="closeRulesModal()">×</button></div>
+    <div class="field"><div class="field-label">Meta de hábitos por día para racha pareja</div>
+      <select id="rule-min-habits">
+        <option value="1">Al menos 1 hábito cada uno</option>
+        <option value="all" selected>Todos los hábitos completados</option>
+        <option value="half">Al menos la mitad</option>
+      </select>
+    </div>
+    <div class="field"><div class="field-label">Comodines de pareja por mes</div>
+      <select id="rule-joker-count">
+        <option value="1" selected>1 comodín</option>
+        <option value="2">2 comodines</option>
+        <option value="3">3 comodines</option>
+      </select>
+    </div>
+    <div class="field"><div class="field-label">Premio del ganador mensual</div>
+      <input id="rule-prize-text" placeholder="Ej: Elige la peli del viernes" maxlength="60">
+    </div>
+    <button class="save-btn" onclick="saveRules()">Guardar reglas</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav" id="main-nav" style="display:none">
+  <button class="nb active" id="nav-home" onclick="goTo('home')">
+    <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+    <span>Inicio</span>
+  </button>
+  <button class="nb" id="nav-session" onclick="openSessionPicker()">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+    <span>Sesión</span>
+  </button>
+  <button class="nb" id="nav-partner" onclick="goTo('partner')">
+    <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><circle cx="15" cy="7" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6h6c3.3 0 6 2.7 6 6"/></svg>
+    <span>Pareja</span>
+  </button>
+  <button class="nb" id="nav-add" onclick="goTo('add')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+    <span>Agregar</span>
+  </button>
+</nav>
+
+<script>
+const ICONS=['💪','🚶','📚','🧘','🏃','🚴','💧','🥗','😴','✍️','🎯','🎸','🧹','💊','🌿','🏋️','🤸','📖','🖊️','🏊','🧠','🎨'];
+const MODES=[
+  {id:'timer',   icon:'⏱️', name:'Timer',      desc:'Duración fija'},
+  {id:'steps',   icon:'👟', name:'Pedómetro',  desc:'Contar pasos'},
+  {id:'pomodoro',icon:'🍅', name:'Pomodoro',   desc:'Bloques 25 min'},
+  {id:'honor',   icon:'✅', name:'Honor',       desc:'Marcar listo'},
+];
+const DEFAULT_HABITS=[
+  {id:'gym',  name:'Ejercicio / Gym', icon:'💪', mode:'timer',    target:30},
+  {id:'walk', name:'Caminar',         icon:'🚶', mode:'steps',    target:3000},
+  {id:'study',name:'Estudio enfocado',icon:'📚', mode:'pomodoro', target:2},
+];
+
+function uid(){return Math.random().toString(36).slice(2,8).toUpperCase()}
+function todayKey(){return new Date().toISOString().slice(0,10)}
+function getLast7(){const d=[];for(let i=6;i>=0;i--){const x=new Date();x.setDate(x.getDate()-i);d.push(x.toISOString().slice(0,10))}return d}
+
+function loadState(){try{return JSON.parse(localStorage.getItem('hf2'))||null}catch{return null}}
+function saveState(){localStorage.setItem('hf2',JSON.stringify(state))}
+
+let state=loadState()||{
+  setup:false, name:'', myCode:uid(),
+  partnerCode:'', partnerName:'', partnerStreak:0, partnerDoneToday:false,
+  habits:[...DEFAULT_HABITS],
+  history:{},
+  coupleStreak:0, coupleJokersUsed:0,
+  rules:{minHabits:'all', jokerCount:1, prize:'Medalla del desafío del mes'},
+  shields:2, bestStreak:0, totalDone:0, perfectWeeks:0,
+  _lastCoupleSave: ''
+};
+
+// Ensure myCode exists
+if(!state.myCode) state.myCode=uid();
+
+let currentHabitId=null,sessRunning=false,sessInterval=null,sessSecs=0,sessTotalSecs=0;
+let stepCount=0,pomoDone=0,pomoGoal=2,selMin=30,stepSensor=null;
+let selIcon=ICONS[0],selMode='honor',selTarget=30;
+
+/* ===== SETUP ===== */
+function checkSetup(){
+  if(!state.setup){
+    document.getElementById('setup-screen').style.display='block';
+    document.getElementById('main-nav').style.display='none';
+  } else {
+    document.getElementById('setup-screen').style.display='none';
+    document.getElementById('main-nav').style.display='flex';
+    renderAll();
+  }
+}
+function finishSetup(){
+  const n=document.getElementById('setup-name').value.trim();
+  if(!n){alert('Escribe tu nombre');return}
+  state.name=n; state.setup=true; saveState();
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('main-nav').style.display='flex';
+  renderAll();
+}
+
+/* ===== NAV ===== */
+function goTo(s){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(x=>x.classList.remove('active'));
+  document.getElementById('screen-'+s).classList.add('active');
+  const nb=document.getElementById('nav-'+s);
+  if(nb) nb.classList.add('active');
+  if(s!=='session') stopSession();
+  renderAll();
+}
+function openSessionPicker(){
+  const pending=state.habits.filter(h=>!isHabitDone(h.id));
+  if(pending.length===0){alert('Ya completaste todos tus hábitos de hoy 🎉');return}
+  if(pending.length===1){openSession(pending[0].id);return}
+  const names=pending.map((h,i)=>`${i+1}. ${h.icon} ${h.name}`).join('\n');
+  const choice=prompt('¿Qué hábito vas a hacer?\n\n'+names+'\n\nEscribe el número:');
+  const idx=parseInt(choice)-1;
+  if(idx>=0&&idx<pending.length) openSession(pending[idx].id);
+}
+
+/* ===== RENDER ===== */
+function renderAll(){renderHome();renderPartner()}
+
+function isHabitDone(id){return(state.history[todayKey()]||[]).includes(id)}
+function countDoneToday(){return(state.history[todayKey()]||[]).length}
+function calcMyStreak(){
+  let s=0,d=new Date();
+  for(let i=0;i<365;i++){
+    const k=d.toISOString().slice(0,10);
+    const done=(state.history[k]||[]).length;
+    if(done>0){s++;d.setDate(d.getDate()-1)}
+    else if(k===todayKey()){d.setDate(d.getDate()-1)}
+    else break;
+  }
+  return s;
+}
+function meetsRule(){
+  const done=countDoneToday(),total=state.habits.length;
+  if(!total) return false;
+  const r=state.rules.minHabits;
+  if(r==='all') return done>=total;
+  if(r==='half') return done>=Math.ceil(total/2);
+  return done>=1;
+}
+
+function renderHome(){
+  const today=new Date();
+  document.getElementById('home-date').textContent=today.toLocaleDateString('es-SV',{weekday:'short',day:'numeric',month:'short'});
+  const done=countDoneToday(),total=state.habits.length,streak=calcMyStreak();
+  if(streak>(state.bestStreak||0)){state.bestStreak=streak;saveState()}
+  document.getElementById('st-done').textContent=done+'/'+total;
+  document.getElementById('st-streak').textContent=streak+'🔥';
+  document.getElementById('st-couple').textContent=(state.coupleStreak||0)+'💑';
+
+  // Couple banner
+  const hasPartner=!!state.partnerCode;
+  const myMet=meetsRule(),partnerMet=state.partnerDoneToday||false;
+  const coupleEl=document.getElementById('couple-banner');
+  const jokerAvail=(state.coupleJokersUsed||0)<(state.rules.jokerCount||1);
+  coupleEl.innerHTML=`
+    <div class="cb-top">
+      <div class="cb-heart">💑</div>
+      <div class="cb-title">Racha de pareja</div>
+      <div>
+        <div class="cb-streak">${state.coupleStreak||0}🔥</div>
+        <div class="cb-streak-l">días seguidos</div>
+      </div>
+    </div>
+    <div class="cb-players">
+      <div class="cb-player you">
+        <div class="cb-pname">Tú (${state.name||'Yo'})</div>
+        <div class="cb-pstreak">${streak}</div>
+        <div class="cb-pstatus">${myMet?'✅ Listo hoy':'⏳ Pendiente'}</div>
+      </div>
+      <div class="cb-player partner">
+        <div class="cb-pname">${hasPartner?(state.partnerName||'Pareja'):'Sin pareja'}</div>
+        <div class="cb-pstreak">${state.partnerStreak||0}</div>
+        <div class="cb-pstatus">${hasPartner?(partnerMet?'✅ Listo hoy':'⏳ Pendiente'):'Conectar →'}</div>
+      </div>
+    </div>
+    ${hasPartner?`<div class="joker-row">
+      <div class="joker-icon">🃏</div>
+      <div class="joker-info"><strong>Comodín de pareja</strong> — salva la racha si uno falla<br>${(state.rules.jokerCount||1)-(state.coupleJokersUsed||0)} disponible(s) este mes</div>
+      <button class="joker-btn" ${!jokerAvail?'disabled':''} onclick="useJoker()">${jokerAvail?'Usar':'Usado'}</button>
+    </div>`:'<div style="text-align:center;padding-top:10px"><button onclick="goTo(\'partner\')" style="color:var(--purple);font-size:13px;font-family:\'Syne\',sans-serif;font-weight:700;background:none;border:none;cursor:pointer">Conectar con tu pareja →</button></div>'}
+  `;
+
+  // PIN
+  const pin=getDailyPin();
+  const pinEl=document.getElementById('pin-d');
+  const hintEl=document.getElementById('pin-hint');
+  if(pin){pinEl.textContent=pin;pinEl.className='pin-d';hintEl.textContent=done>=total&&total>0?'🎉 Día perfecto':''+done+' hábito'+(done!==1?'s':'')+' completado'+(done!==1?'s':'')}
+  else{pinEl.textContent='••••••';pinEl.className='pin-d locked';hintEl.textContent='Completa al menos 1 hábito para desbloquear'}
+
+  // Habits list
+  const list=document.getElementById('habits-list');
+  list.innerHTML='';
+  const last7=getLast7();
+  state.habits.forEach(h=>{
+    const isDone=isHabitDone(h.id);
+    const card=document.createElement('div');
+    card.className='hc'+(isDone?' done':'');
+    const wk=last7.filter(d=>(state.history[d]||[]).includes(h.id)).length;
+    const modeLabel={timer:'Temporizador',steps:'Pedómetro',pomodoro:'Pomodoro',honor:'Honor system'}[h.mode]||'';
+    const dots=last7.map(d=>{const ok=(state.history[d]||[]).includes(h.id),isT=d===todayKey();return`<div class="dot${ok?' ok':(isT?' te':'')}"></div>`}).join('');
+    card.innerHTML=`
+      <div class="hc-head">
+        <div class="hc-icon">${h.icon}</div>
+        <div class="hc-meta">
+          <div class="hc-name">${h.name}</div>
+          <div class="hc-sub">${modeLabel} · ${wk}/7 días esta semana</div>
+        </div>
+        <div class="hc-btns">
+          <button class="start-btn" onclick="openSession('${h.id}')" ${isDone?'disabled':''}>${isDone?'✓ Listo':'Iniciar'}</button>
+          ${!DEFAULT_HABITS.find(x=>x.id===h.id)?`<button class="del-btn" onclick="deleteHabit('${h.id}')">×</button>`:''}
+        </div>
+      </div>
+      <div class="dots-row">${dots}</div>`;
+    list.appendChild(card);
+  });
+}
+
+function renderPartner(){
+  document.getElementById('my-code').textContent=state.myCode||'------';
+  const hasP=!!state.partnerCode;
+  // Leaderboard
+  const lb=document.getElementById('leaderboard');
+  const myS=calcMyStreak(),partS=state.partnerStreak||0;
+  const myFirst=myS>=partS;
+  const rows=[
+    {rank:myFirst?1:2,name:state.name||'Yo',streak:myS,you:true,color:'var(--green)'},
+    {rank:myFirst?2:1,name:hasP?(state.partnerName||'Pareja'):'Sin pareja',streak:partS,you:false,color:'var(--purple)'},
+  ].sort((a,b)=>a.rank-b.rank);
+  lb.innerHTML=rows.map(r=>`
+    <div class="lb-row">
+      <div class="lb-rank">${r.rank===1?'🥇':'🥈'}</div>
+      <div class="lb-avatar" style="background:${r.color}22;color:${r.color}">${(r.name||'?')[0].toUpperCase()}</div>
+      <div class="lb-info">
+        <div class="lb-name">${r.name}${r.you?' (tú)':''}</div>
+        <div class="lb-sub">${r.rank===1?'Va ganando':'Va perdiendo'}</div>
+      </div>
+      <div class="lb-streak" style="color:${r.color}">${r.streak}🔥</div>
+    </div>`).join('');
+
+  // Monthly card
+  const now=new Date();
+  const daysLeft=new Date(now.getFullYear(),now.getMonth()+1,0).getDate()-now.getDate();
+  const winner=myS>partS?(state.name||'Tú'):myS<partS?(state.partnerName||'Pareja'):'Empate';
+  document.getElementById('monthly-card').innerHTML=`
+    <div class="mc-top"><div class="mc-icon">🏆</div><div class="mc-title">Desafío de ${now.toLocaleDateString('es-SV',{month:'long'})}</div></div>
+    <div class="mc-winner">Va ganando: <strong style="color:var(--amber)">${winner}</strong>${winner==='Empate'?'':' con ${myS>partS?myS:partS} días de racha'}<br>Faltan <strong style="color:var(--amber)">${daysLeft}</strong> días · Premio: ${state.rules.prize||'Medalla del desafío'}</div>`;
+
+  // Rules display
+  const rMap={all:'Todos los hábitos',half:'La mitad',1:'Al menos 1'};
+  document.getElementById('rule-couple-streak').textContent=rMap[state.rules.minHabits]||'Todos';
+  document.getElementById('rule-fail').textContent=`${state.rules.jokerCount||1} comodín(es)/mes`;
+  document.getElementById('rule-prize').textContent=state.rules.prize||'Medalla del desafío';
+  document.getElementById('rule-jokers').textContent=`${(state.rules.jokerCount||1)-(state.coupleJokersUsed||0)} disponible(s)`;
+}
+
+/* ===== PARTNER CONNECT ===== */
+function copyCode(){
+  navigator.clipboard.writeText(state.myCode||'').then(()=>{
+    const b=document.querySelector('.pcc-btn');b.textContent='✓ Copiado';setTimeout(()=>b.textContent='Copiar código',2000);
+  }).catch(()=>prompt('Tu código:',state.myCode));
+}
+function connectPartner(){
+  const code=document.getElementById('partner-code-input').value.trim().toUpperCase();
+  if(!code||code.length<4){document.getElementById('connect-status').textContent='Código inválido';return}
+  if(code===state.myCode){document.getElementById('connect-status').textContent='Ese es tu propio código 😅';return}
+  state.partnerCode=code;
+  const pname=prompt('¿Cómo se llama tu pareja?','');
+  state.partnerName=pname||'Pareja';
+  saveState();
+  document.getElementById('connect-status').textContent='✅ Pareja conectada: '+(state.partnerName);
+  renderAll();
+}
+
+/* ===== JOKER ===== */
+function useJoker(){
+  const avail=(state.rules.jokerCount||1)-(state.coupleJokersUsed||0);
+  if(avail<=0){alert('No tienes comodines disponibles este mes');return}
+  if(!confirm('¿Usar comodín de pareja? Esto protege la racha aunque uno de los dos no haya completado sus hábitos hoy.')){return}
+  state.coupleJokersUsed=(state.coupleJokersUsed||0)+1;
+  // Give partner credit for today in simulation
+  state.partnerDoneToday=true;
+  saveState();renderAll();
+  alert('🃏 Comodín usado. La racha de pareja está protegida hoy.');
+}
+
+/* ===== RULES ===== */
+function showRulesModal(){
+  document.getElementById('rules-modal').classList.add('show');
+  document.getElementById('rule-min-habits').value=state.rules.minHabits||'all';
+  document.getElementById('rule-joker-count').value=String(state.rules.jokerCount||1);
+  document.getElementById('rule-prize-text').value=state.rules.prize||'';
+}
+function closeRulesModal(){document.getElementById('rules-modal').classList.remove('show')}
+function saveRules(){
+  state.rules.minHabits=document.getElementById('rule-min-habits').value;
+  state.rules.jokerCount=parseInt(document.getElementById('rule-joker-count').value)||1;
+  const p=document.getElementById('rule-prize-text').value.trim();
+  if(p) state.rules.prize=p;
+  saveState();closeRulesModal();renderAll();
+}
+
+/* ===== ADD HABIT ===== */
+function initAddForm(){
+  selIcon=ICONS[0];selMode='honor';selTarget=30;
+  const ig=document.getElementById('icon-grid');
+  ig.innerHTML=ICONS.map(i=>`<button class="icon-opt${i===selIcon?' sel':''}" onclick="pickIcon('${i}')">${i}</button>`).join('');
+  const mg=document.getElementById('mode-grid');
+  mg.innerHTML=MODES.map(m=>`<button class="mode-opt${m.id===selMode?' sel':''}" onclick="pickMode('${m.id}')"><div class="mode-opt-icon">${m.icon}</div><div class="mode-opt-name">${m.name}</div><div class="mode-opt-desc">${m.desc}</div></button>`).join('');
+  updateTargetConfig();
+}
+function pickIcon(i){selIcon=i;document.querySelectorAll('.icon-opt').forEach(b=>{b.classList.toggle('sel',b.textContent===i)})}
+function pickMode(m){
+  selMode=m;
+  document.querySelectorAll('.mode-opt').forEach(b=>{b.classList.toggle('sel',b.querySelector('.mode-opt-name')?.textContent===MODES.find(x=>x.id===m)?.name)});
+  updateTargetConfig();
+}
+function updateTargetConfig(){
+  const tc=document.getElementById('target-config');
+  const tl=document.getElementById('target-label');
+  const tu=document.getElementById('target-unit');
+  const tv=document.getElementById('target-val');
+  if(selMode==='timer'){tc.style.display='block';tl.textContent='Duración';tu.textContent='minutos';tv.value=30;selTarget=30}
+  else if(selMode==='steps'){tc.style.display='block';tl.textContent='Meta de pasos';tu.textContent='pasos';tv.value=3000;selTarget=3000}
+  else if(selMode==='pomodoro'){tc.style.display='block';tl.textContent='Bloques Pomodoro';tu.textContent='bloques';tv.value=2;selTarget=2}
+  else{tc.style.display='none'}
+}
+function saveHabit(){
+  const name=document.getElementById('h-name').value.trim();
+  if(!name){alert('Escribe el nombre del hábito');return}
+  const tv=document.getElementById('target-val');
+  if(tv.closest('#target-config').style.display!=='none') selTarget=parseInt(tv.value)||30;
+  const h={id:'h_'+Date.now(),name,icon:selIcon,mode:selMode,target:selTarget};
+  state.habits.push(h);saveState();
+  document.getElementById('h-name').value='';
+  goTo('home');
+}
+function deleteHabit(id){
+  if(!confirm('¿Eliminar este hábito?')) return;
+  state.habits=state.habits.filter(h=>h.id!==id);saveState();renderAll();
+}
+
+/* ===== PIN ===== */
+function getDailyPin(){
+  if(countDoneToday()===0) return null;
+  const seed=todayKey().replace(/-/g,'')+'9361';
+  let h=0;for(let i=0;i<seed.length;i++){h=(Math.imul(31,h)+seed.charCodeAt(i))|0}
+  return String(Math.abs(h)%900000+100000);
+}
+
+/* ===== SESSION ===== */
+function openSession(habitId){
+  const h=state.habits.find(x=>x.id===habitId);
+  if(!h) return;
+  currentHabitId=habitId;
+  sessRunning=false;stepCount=0;pomoDone=0;
+  selMin=h.target||30;
+  document.getElementById('sess-name').textContent=h.name;
+  const durRow=document.getElementById('dur-row');
+  const pomoDots=document.getElementById('pomo-dots');
+  const stepsBig=document.getElementById('steps-big');
+  durRow.style.display='none';pomoDots.style.display='none';stepsBig.style.display='none';
+  if(h.mode==='timer'){
+    const opts=[20,30,45,60];selMin=h.target||30;
+    durRow.style.display='flex';
+    durRow.innerHTML=opts.map(m=>`<button class="dur-btn${m===selMin?' sel':''}" onclick="pickDur(${m})">${m} min</button>`).join('');
+    document.getElementById('sess-sub').textContent='Selecciona duración';
+    updTimer(selMin*60,selMin*60);
+  }else if(h.mode==='steps'){
+    stepsBig.style.display='block';stepsBig.textContent='0 pasos';
+    document.getElementById('sess-sub').textContent='Meta: '+h.target+' pasos';
+    document.getElementById('t-disp').textContent='0';
+    document.getElementById('t-sub').textContent='de '+h.target+' pasos';
+    updRing(0,1);
+  }else if(h.mode==='pomodoro'){
+    pomoGoal=h.target||2;pomoDots.style.display='flex';renderPomoDots();
+    document.getElementById('sess-sub').textContent=pomoGoal+' bloques de 25 min';
+    updTimer(25*60,25*60);
+  }else{
+    document.getElementById('sess-sub').textContent='Marca cuando lo hayas hecho';
+    document.getElementById('t-disp').textContent='✓';
+    document.getElementById('t-sub').textContent='listo para marcar';
+    updRing(0,1);
+  }
+  document.getElementById('sb-start').textContent='Iniciar';
+  document.getElementById('sb-start').disabled=false;
+  document.getElementById('sb-start').onclick=sessionStart;
+  goTo('session');
+}
+function pickDur(m){selMin=m;document.querySelectorAll('.dur-btn').forEach(b=>{b.classList.toggle('sel',parseInt(b.textContent)===m)});updTimer(m*60,m*60)}
+function renderPomoDots(){const c=document.getElementById('pomo-dots');c.innerHTML='';for(let i=0;i<pomoGoal;i++){const d=document.createElement('div');d.className='pdot'+(i<pomoDone?' done':i===pomoDone?' cur':'');c.appendChild(d)}}
+function updTimer(rem,tot){
+  const m=Math.floor(rem/60),s=rem%60;
+  document.getElementById('t-disp').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  document.getElementById('t-sub').textContent=sessRunning?'en curso':'listo';
+  updRing(tot-rem,tot);
+}
+function updRing(done,total){const pct=total>0?done/total:0;document.getElementById('ring-p').style.strokeDashoffset=565.5*(1-pct)}
+
+function sessionStart(){
+  if(sessRunning) return;
+  const h=state.habits.find(x=>x.id===currentHabitId);
+  if(!h) return;
+  sessRunning=true;
+  document.getElementById('sb-start').textContent='En curso...';
+  document.getElementById('sb-start').disabled=true;
+  if(h.mode==='honor'){sessionComplete();return}
+  if(h.mode==='steps'){startSteps(h.target);return}
+  sessTotalSecs=(h.mode==='pomodoro'?25:selMin)*60;
+  sessSecs=sessTotalSecs;
+  sessInterval=setInterval(()=>{
+    sessSecs--;updTimer(sessSecs,sessTotalSecs);
+    if(sessSecs<=0){
+      clearInterval(sessInterval);sessRunning=false;
+      if(h.mode==='pomodoro'){
+        pomoDone++;renderPomoDots();
+        if(pomoDone>=pomoGoal){sessionComplete()}
+        else{document.getElementById('sess-sub').textContent=`Bloque ${pomoDone}/${pomoGoal} — descansa 5 min`;document.getElementById('sb-start').textContent='Siguiente bloque';document.getElementById('sb-start').disabled=false;sessSecs=25*60;updTimer(sessSecs,sessTotalSecs)}
+      } else sessionComplete();
+    }
+  },1000);
+}
+
+function startSteps(goal){
+  const sb=document.getElementById('steps-big');
+  const tryMotion=()=>{
+    if(typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){
+      DeviceMotionEvent.requestPermission().then(r=>{r==='granted'?listenMotion(goal):manualSteps(goal)}).catch(()=>manualSteps(goal));
+    } else if(typeof DeviceMotionEvent!=='undefined'){listenMotion(goal)}
+    else manualSteps(goal);
+  };
+  let lastA={x:0,y:0,z:0},lastStep=0;
+  function listenMotion(g){
+    const handler=e=>{
+      const a=e.accelerationIncludingGravity||e.acceleration;if(!a)return;
+      const delta=Math.abs((a.x||0)-lastA.x)+Math.abs((a.y||0)-lastA.y)+Math.abs((a.z||0)-lastA.z);
+      const now=Date.now();
+      if(delta>3&&now-lastStep>350){stepCount++;lastStep=now;sb.textContent=stepCount+' pasos';document.getElementById('t-disp').textContent=stepCount;updRing(stepCount,g);if(stepCount>=g){window.removeEventListener('devicemotion',handler);sessionComplete()}}
+      lastA={x:a.x||0,y:a.y||0,z:a.z||0};
+    };
+    window.addEventListener('devicemotion',handler);
+  }
+  function manualSteps(g){
+    document.getElementById('sess-sub').textContent='Sensor no disponible — toca cada 2 pasos';
+    const btn=document.getElementById('sb-start');btn.textContent='Tocar (+2 pasos)';btn.disabled=false;
+    btn.onclick=()=>{stepCount+=2;sb.textContent=stepCount+' pasos';document.getElementById('t-disp').textContent=stepCount;updRing(stepCount,g);if(stepCount>=g){btn.onclick=null;sessionComplete()}};
+  }
+  tryMotion();
+}
+
+function sessionCancel(){stopSession();goTo('home')}
+function stopSession(){if(sessInterval)clearInterval(sessInterval);sessInterval=null;sessRunning=false;if(stepSensor){try{stepSensor.stop()}catch(e){}stepSensor=null}}
+
+function sessionComplete(){
+  stopSession();
+  const today=todayKey();
+  if(!state.history[today]) state.history[today]=[];
+  if(!state.history[today].includes(currentHabitId)){
+    state.history[today].push(currentHabitId);
+    state.totalDone=(state.totalDone||0)+1;
+  }
+  checkCoupleStreak();
+  saveState();
+  const done=countDoneToday(),total=state.habits.length;
+  const pin=getDailyPin();
+  const h=state.habits.find(x=>x.id===currentHabitId);
+  const icon=done>=total&&total>0?'🏆':done>=Math.ceil(total/2)?'🎯':'✅';
+  const title=done>=total&&total>0?'¡Día perfecto!':'¡Hábito completado!';
+  let sub=`${h?.name||'Hábito'} marcado.\n`;
+  if(pin) sub+=`PIN del día: ${pin}`;
+  if(done>=total&&total>0) sub+=`\n🎉 ¡Todos tus hábitos listos!`;
+  document.getElementById('ov-icon').textContent=icon;
+  document.getElementById('ov-title').textContent=title;
+  document.getElementById('ov-sub').textContent=sub;
+  document.getElementById('overlay').classList.add('show');
+}
+
+function checkCoupleStreak(){
+  const myMet=meetsRule();
+  const partMet=state.partnerDoneToday||false;
+  const today=todayKey();
+  if(myMet&&(partMet||(state.coupleJokersUsed||0)>0)){
+    if(state._lastCoupleDay!==today){
+      state.coupleStreak=(state.coupleStreak||0)+1;
+      state._lastCoupleDay=today;
+    }
+  }
+}
+
+function closeOverlay(){document.getElementById('overlay').classList.remove('show');goTo('home')}
+
+/* ===== INIT ===== */
+document.getElementById('screen-add').addEventListener('focus',initAddForm,{once:false});
+const origGoTo=goTo;
+window.goTo=function(s){origGoTo(s);if(s==='add')initAddForm()};
+
+// Reset jokers on new month
+(function(){
+  const m=new Date().toISOString().slice(0,7);
+  if(state._lastJokerMonth!==m){state.coupleJokersUsed=0;state._lastJokerMonth=m;saveState()}
+})();
+
+checkSetup();
+</script>
+</body>
+</html>
