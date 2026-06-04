@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HabitForge">
+<title>HabitForge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface2: #1e1e1e;
+  --border: #2a2a2a;
+  --border2: #383838;
+  --text: #f0ede8;
+  --text2: #888;
+  --text3: #555;
+  --green: #b8f058;
+  --green-dim: #2a3a10;
+  --green-mid: #7ab030;
+  --amber: #f0a030;
+  --amber-dim: #3a2800;
+  --red: #f05050;
+  --red-dim: #3a1010;
+  --blue: #60b0f8;
+  --blue-dim: #102038;
+  --purple: #b090f8;
+  --r: 12px;
+  --r-sm: 8px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input { font-family: inherit; }
+
+/* SCREENS */
+.screen { display: none; flex-direction: column; height: 100dvh; overflow: hidden; }
+.screen.active { display: flex; }
+
+/* SCROLL AREA */
+.scroll { flex: 1; overflow-y: auto; padding: 0 16px 100px; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+
+/* NAV */
+.nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; padding: 8px 0 max(8px, env(safe-area-inset-bottom)); z-index: 100; }
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; border-radius: var(--r-sm); transition: color .15s; color: var(--text3); }
+.nav-btn.active { color: var(--green); }
+.nav-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-btn span { font-size: 10px; font-family: 'Syne', sans-serif; }
+
+/* HEADER */
+.header { padding: 52px 16px 16px; }
+.header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+.app-title { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; color: var(--text); letter-spacing: -.5px; }
+.app-title span { color: var(--green); }
+.date-chip { font-size: 12px; color: var(--text2); background: var(--surface2); padding: 5px 10px; border-radius: 20px; border: 1px solid var(--border); }
+
+/* STATS ROW */
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 10px; text-align: center; }
+.stat-val { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--text); }
+.stat-val.green { color: var(--green); }
+.stat-val.amber { color: var(--amber); }
+.stat-label { font-size: 10px; color: var(--text2); margin-top: 2px; text-transform: uppercase; letter-spacing: .04em; }
+
+/* SECTION */
+.sec { margin-bottom: 24px; }
+.sec-title { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 10px; }
+
+/* HABIT CARDS */
+.habit-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; margin-bottom: 8px; transition: border-color .2s; }
+.habit-card.done { border-color: var(--green); background: #0e1a06; }
+.habit-card.done .habit-name { color: var(--green); }
+.habit-head { display: flex; align-items: center; gap: 12px; }
+.habit-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.habit-card.done .habit-icon { background: var(--green-dim); border-color: var(--green); }
+.habit-meta { flex: 1; min-width: 0; }
+.habit-name { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 2px; color: var(--text); }
+.habit-streak { font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 4px; }
+.streak-fire { color: var(--amber); }
+.habit-action { display: flex; gap: 8px; align-items: center; }
+.start-btn { background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 7px 12px; font-size: 12px; font-family: 'Syne', sans-serif; font-weight: 600; color: var(--text2); transition: all .15s; white-space: nowrap; }
+.start-btn:hover { border-color: var(--green); color: var(--green); }
+.habit-card.done .start-btn { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+.dots-row { display: flex; gap: 4px; margin-top: 10px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--border); }
+.dot.ok { background: var(--green); }
+.dot.today-empty { background: var(--border2); border: 1px solid var(--text3); }
+
+/* UNLOCK CARD */
+.unlock-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 20px; }
+.unlock-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.unlock-bars { display: flex; flex-direction: column; gap: 7px; }
+.unlock-row { display: flex; align-items: center; gap: 10px; }
+.unlock-dots { display: flex; gap: 3px; }
+.unlock-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border2); transition: background .3s; }
+.unlock-dot.lit { background: var(--green); }
+.unlock-label { font-size: 12px; color: var(--text2); flex: 1; }
+.unlock-time { font-size: 12px; font-family: 'Syne', sans-serif; font-weight: 600; color: var(--text); }
+.pin-box { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 14px; }
+.pin-label { font-size: 11px; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em; }
+.pin-display { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: var(--green); background: var(--green-dim); border: 1px solid var(--green); border-radius: var(--r-sm); padding: 12px 16px; text-align: center; }
+.pin-display.locked { color: var(--text3); background: var(--surface2); border-color: var(--border); letter-spacing: 4px; filter: blur(4px); user-select: none; }
+.pin-hint { font-size: 11px; color: var(--text2); margin-top: 8px; text-align: center; }
+
+/* SHIELDS */
+.shields-row { display: flex; gap: 8px; align-items: center; margin-bottom: 20px; }
+.shield { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.shield.active { background: var(--blue-dim); border-color: var(--blue); }
+.shields-info { font-size: 12px; color: var(--text2); flex: 1; line-height: 1.5; }
+
+/* SESSION SCREEN */
+.session-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; }
+.session-habit-name { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+.session-mode-label { font-size: 13px; color: var(--text2); margin-bottom: 40px; }
+.timer-ring-wrap { position: relative; width: 220px; height: 220px; margin: 0 auto 36px; }
+.timer-ring-wrap svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+.timer-ring-bg { fill: none; stroke: var(--border); stroke-width: 8; }
+.timer-ring-prog { fill: none; stroke: var(--green); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset .5s linear; }
+.timer-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.timer-display { font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 800; color: var(--text); line-height: 1; }
+.timer-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+.steps-display { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: var(--green); margin-top: 6px; }
+.steps-goal { font-size: 11px; color: var(--text2); }
+.session-controls { display: flex; gap: 12px; margin-bottom: 24px; }
+.sess-btn { flex: 1; padding: 14px; border-radius: var(--r); font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; border: 1px solid var(--border); background: var(--surface); color: var(--text2); transition: all .15s; }
+.sess-btn.primary { background: var(--green); border-color: var(--green); color: #0a0a0a; }
+.sess-btn.danger { border-color: var(--red); color: var(--red); }
+.sess-btn:disabled { opacity: .4; cursor: not-allowed; }
+.duration-select { display: flex; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; justify-content: center; }
+.dur-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); font-size: 13px; font-family: 'Syne', sans-serif; font-weight: 600; transition: all .15s; }
+.dur-btn.active { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+.pomodoro-count { display: flex; gap: 6px; justify-content: center; margin-bottom: 16px; }
+.pomo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border2); }
+.pomo-dot.done { background: var(--green); }
+.pomo-dot.active { background: var(--amber); }
+
+/* REWARDS SCREEN */
+.rewards-wrap { padding: 52px 16px 100px; }
+.reward-hero { text-align: center; padding: 24px 0 28px; }
+.reward-hero-val { font-family: 'Syne', sans-serif; font-size: 52px; font-weight: 800; color: var(--green); line-height: 1; }
+.reward-hero-label { font-size: 13px; color: var(--text2); margin-top: 4px; }
+.reward-tier-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+.reward-tier { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 10px 14px; }
+.reward-tier.earned { border-color: var(--green); background: #0e1a06; }
+.rt-icon { font-size: 20px; width: 32px; text-align: center; }
+.rt-info { flex: 1; }
+.rt-name { font-size: 13px; font-family: 'Syne', sans-serif; font-weight: 600; color: var(--text); }
+.rt-desc { font-size: 11px; color: var(--text2); }
+.rt-time { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--text2); }
+.reward-tier.earned .rt-time { color: var(--green); }
+
+/* PROFILE SCREEN */
+.profile-wrap { padding: 52px 16px 100px; }
+.level-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; margin-bottom: 16px; display: flex; align-items: center; gap: 16px; }
+.level-badge { width: 60px; height: 60px; border-radius: 14px; background: var(--green-dim); border: 2px solid var(--green); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+.level-info { flex: 1; }
+.level-name { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.level-sub { font-size: 12px; color: var(--text2); margin-bottom: 8px; }
+.xp-bar-wrap { background: var(--border); border-radius: 4px; height: 6px; }
+.xp-bar { height: 6px; border-radius: 4px; background: var(--green); transition: width .4s; }
+.medals-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
+.medal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 12px; display: flex; align-items: center; gap: 10px; }
+.medal.earned { border-color: var(--amber); background: var(--amber-dim); }
+.medal-icon { font-size: 22px; }
+.medal-info .medal-name { font-size: 12px; font-family: 'Syne', sans-serif; font-weight: 600; color: var(--text); }
+.medal-info .medal-req { font-size: 11px; color: var(--text2); }
+.share-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 20px; }
+.share-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.share-url { background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 10px 12px; font-size: 11px; color: var(--blue); font-family: monospace; word-break: break-all; margin-bottom: 10px; }
+.copy-btn { width: 100%; padding: 10px; border-radius: var(--r-sm); border: 1px solid var(--border2); background: var(--surface2); color: var(--text2); font-size: 13px; font-family: 'Syne', sans-serif; font-weight: 600; transition: all .15s; }
+.copy-btn:hover { border-color: var(--blue); color: var(--blue); }
+.message-in { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 12px; margin-bottom: 8px; }
+.msg-from { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+.msg-text { font-size: 13px; color: var(--text); font-style: italic; }
+
+/* SUCCESS OVERLAY */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 200; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px; }
+.overlay.show { display: flex; }
+.overlay-icon { font-size: 72px; margin-bottom: 16px; animation: pop .4s cubic-bezier(.34,1.56,.64,1); }
+.overlay-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--green); margin-bottom: 8px; }
+.overlay-sub { font-size: 14px; color: var(--text2); margin-bottom: 32px; line-height: 1.6; }
+.overlay-btn { padding: 14px 32px; border-radius: var(--r); background: var(--green); color: #0a0a0a; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+
+@keyframes pop { 0%{transform:scale(0)} 100%{transform:scale(1)} }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+.pulse { animation: pulse 1.5s infinite; }
+
+/* SETTINGS toggle for username */
+.name-setup { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 16px; }
+.name-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+.name-input-row { display: flex; gap: 8px; }
+.name-input { flex: 1; background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 10px 12px; color: var(--text); font-size: 14px; outline: none; }
+.name-input:focus { border-color: var(--green); }
+.name-save { padding: 10px 16px; border-radius: var(--r-sm); background: var(--green); color: #0a0a0a; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- DASHBOARD -->
+<div class="screen active" id="screen-home">
+  <div class="scroll">
+    <div class="header">
+      <div class="header-top">
+        <div class="app-title">Habit<span>Forge</span></div>
+        <div class="date-chip" id="home-date"></div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-val green" id="stat-done">0/3</div><div class="stat-label">Hoy</div></div>
+      <div class="stat"><div class="stat-val amber" id="stat-streak">0🔥</div><div class="stat-label">Racha</div></div>
+      <div class="stat"><div class="stat-val" id="stat-unlocked">0h</div><div class="stat-label">Ganadas</div></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">Desbloqueo de hoy</div>
+      <div class="unlock-card">
+        <div class="unlock-bars">
+          <div class="unlock-row">
+            <div class="unlock-dots" id="ud-1"></div>
+            <div class="unlock-label">1 hábito</div>
+            <div class="unlock-time">30 min</div>
+          </div>
+          <div class="unlock-row">
+            <div class="unlock-dots" id="ud-2"></div>
+            <div class="unlock-label">2 hábitos</div>
+            <div class="unlock-time">90 min</div>
+          </div>
+          <div class="unlock-row">
+            <div class="unlock-dots" id="ud-3"></div>
+            <div class="unlock-label">3 hábitos</div>
+            <div class="unlock-time">Sin límite</div>
+          </div>
+        </div>
+        <div class="pin-box">
+          <div class="pin-label">PIN del día — para Digital Wellbeing</div>
+          <div class="pin-display locked" id="pin-display">••••••</div>
+          <div class="pin-hint" id="pin-hint">Completa al menos 1 hábito para desbloquear</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">Escudos de racha</div>
+      <div class="shields-row">
+        <div class="shield active" id="shield-1">🛡️</div>
+        <div class="shield active" id="shield-2">🛡️</div>
+        <div class="shield" id="shield-3"></div>
+        <div class="shields-info" id="shields-info">2 escudos disponibles · Ganas 1 más por semana perfecta</div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">Hábitos de hoy</div>
+      <div id="habits-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SESSION -->
+<div class="screen" id="screen-session">
+  <div class="session-wrap">
+    <div class="session-habit-name" id="sess-name">Ejercicio</div>
+    <div class="session-mode-label" id="sess-mode-label">Selecciona duración</div>
+
+    <div class="duration-select" id="duration-select">
+      <button class="dur-btn active" data-min="20">20 min</button>
+      <button class="dur-btn" data-min="30">30 min</button>
+      <button class="dur-btn" data-min="45">45 min</button>
+      <button class="dur-btn" data-min="60">60 min</button>
+    </div>
+
+    <div class="pomodoro-count" id="pomo-dots" style="display:none"></div>
+
+    <div class="timer-ring-wrap">
+      <svg viewBox="0 0 220 220" width="220" height="220">
+        <circle class="timer-ring-bg" cx="110" cy="110" r="95"/>
+        <circle class="timer-ring-prog" cx="110" cy="110" r="95" id="ring-prog"
+          stroke-dasharray="596.9" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-inner">
+        <div class="timer-display" id="timer-display">20:00</div>
+        <div class="timer-sub" id="timer-sub">listos</div>
+        <div class="steps-display" id="steps-display" style="display:none">0 pasos</div>
+        <div class="steps-goal" id="steps-goal" style="display:none"></div>
+      </div>
+    </div>
+
+    <div class="session-controls">
+      <button class="sess-btn primary" id="sess-start-btn" onclick="sessionStart()">Iniciar</button>
+      <button class="sess-btn danger" id="sess-cancel-btn" onclick="sessionCancel()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- REWARDS -->
+<div class="screen" id="screen-rewards">
+  <div class="rewards-wrap">
+    <div class="sec-title" style="padding-top:0">Tu recompensa de hoy</div>
+    <div class="reward-hero">
+      <div class="reward-hero-val" id="rw-time">0 min</div>
+      <div class="reward-hero-label">tiempo desbloqueado para redes sociales</div>
+    </div>
+    <div class="sec-title">Niveles de desbloqueo</div>
+    <div class="reward-tier-row" id="tier-rows"></div>
+    <div class="sec-title">Cómo usar el PIN</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:20px">
+      1. Instala <strong style="color:var(--text)">AppBlock</strong> o activa <strong style="color:var(--text)">Digital Wellbeing</strong> en tu teléfono.<br>
+      2. Configura Instagram, TikTok, etc. con un PIN de acceso.<br>
+      3. Cada día el PIN de HabitForge cambia — solo aparece al completar hábitos.<br>
+      4. Úsalo para abrir las apps y disfrutar tu tiempo ganado.
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="screen" id="screen-profile">
+  <div class="profile-wrap">
+    <div class="sec-title" style="padding-top:0">Tu perfil</div>
+    <div class="name-setup">
+      <div class="name-label">Tu nombre (para el tablero compartido)</div>
+      <div class="name-input-row">
+        <input class="name-input" id="username-input" placeholder="Ej: Carlos" maxlength="20">
+        <button class="name-save" onclick="saveName()">Guardar</button>
+      </div>
+    </div>
+    <div class="level-card">
+      <div class="level-badge" id="level-badge">🥉</div>
+      <div class="level-info">
+        <div class="level-name" id="level-name">Principiante</div>
+        <div class="level-sub" id="level-sub">Racha máxima: 0 días</div>
+        <div class="xp-bar-wrap"><div class="xp-bar" id="xp-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="sec-title">Medallas</div>
+    <div class="medals-grid" id="medals-grid"></div>
+    <div class="sec-title">Compartir progreso</div>
+    <div class="share-card">
+      <div class="share-title">🔗 Tablero público</div>
+      <div class="share-url" id="share-url">Guarda tu nombre para generar el enlace</div>
+      <button class="copy-btn" onclick="copyShareUrl()">Copiar enlace</button>
+    </div>
+    <div class="sec-title" id="msg-sec-title" style="display:none">Mensajes de apoyo</div>
+    <div id="messages-list"></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav" id="main-nav">
+  <button class="nav-btn active" id="nav-home" onclick="goTo('home')">
+    <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+    <span>Inicio</span>
+  </button>
+  <button class="nav-btn" id="nav-session" onclick="goTo('session')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+    <span>Sesión</span>
+  </button>
+  <button class="nav-btn" id="nav-rewards" onclick="goTo('rewards')">
+    <svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+    <span>Recompensa</span>
+  </button>
+  <button class="nav-btn" id="nav-profile" onclick="goTo('profile')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    <span>Perfil</span>
+  </button>
+</nav>
+
+<!-- SUCCESS OVERLAY -->
+<div class="overlay" id="success-overlay">
+  <div class="overlay-icon" id="overlay-icon">🎉</div>
+  <div class="overlay-title" id="overlay-title">¡Hábito completado!</div>
+  <div class="overlay-sub" id="overlay-sub">Has ganado tu recompensa.</div>
+  <button class="overlay-btn" onclick="closeOverlay()">Ver recompensa</button>
+</div>
+
+<script>
+const HABITS = [
+  { id: 'gym',    name: 'Ejercicio / Gym', icon: '💪', mode: 'timer',    defaultMin: 30 },
+  { id: 'walk',   name: 'Caminar',         icon: '🚶', mode: 'steps',    stepsGoal: 3000 },
+  { id: 'study',  name: 'Estudio enfocado',icon: '📚', mode: 'pomodoro', pomosGoal: 2 }
+];
+const MEDALS = [
+  { id: 'first',   icon: '⚡', name: 'Primera chispa',   req: 'Completa 1 hábito',       check: s => s.totalDone >= 1 },
+  { id: 'week1',   icon: '🥉', name: 'Bronce',            req: 'Racha de 7 días',         check: s => s.bestStreak >= 7 },
+  { id: 'week3',   icon: '🥈', name: 'Plata',             req: 'Racha de 21 días',        check: s => s.bestStreak >= 21 },
+  { id: 'month1',  icon: '🥇', name: 'Oro',               req: 'Racha de 30 días',        check: s => s.bestStreak >= 30 },
+  { id: 'perfect', icon: '💎', name: 'Semana perfecta',   req: '7 días seguidos 3/3',     check: s => s.perfectWeeks >= 1 },
+  { id: 'legend',  icon: '👑', name: 'Leyenda',           req: 'Racha de 90 días',        check: s => s.bestStreak >= 90 },
+];
+const LEVELS = [
+  { name: 'Principiante', icon: '🌱', min: 0,  max: 7  },
+  { name: 'Bronce',       icon: '🥉', min: 7,  max: 21 },
+  { name: 'Plata',        icon: '🥈', min: 21, max: 30 },
+  { name: 'Oro',          icon: '🥇', min: 30, max: 90 },
+  { name: 'Leyenda',      icon: '👑', min: 90, max: 90 },
+];
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem('hf_state')) || defaultState(); }
+  catch { return defaultState(); }
+}
+function defaultState() {
+  return { history: {}, shields: 2, username: '', messages: [], bestStreak: 0, totalDone: 0, perfectWeeks: 0 };
+}
+function saveState() { localStorage.setItem('hf_state', JSON.stringify(state)); }
+
+let state = loadState();
+let currentHabitId = null;
+let sessionInterval = null;
+let sessionRunning = false;
+let sessionSeconds = 0;
+let sessionTotalSeconds = 0;
+let stepCount = 0;
+let pomoDone = 0;
+let pomoGoal = 2;
+let selectedMinutes = 20;
+let stepSensor = null;
+
+const todayKey = () => new Date().toISOString().slice(0,10);
+
+function getLast7() {
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    days.push(d.toISOString().slice(0,10));
+  }
+  return days;
+}
+
+function isHabitDoneToday(id) {
+  return (state.history[todayKey()] || []).includes(id);
+}
+
+function markHabitDone(id) {
+  const today = todayKey();
+  if (!state.history[today]) state.history[today] = [];
+  if (!state.history[today].includes(id)) {
+    state.history[today].push(id);
+    state.totalDone = (state.totalDone || 0) + 1;
+  }
+  const streak = calcStreak();
+  if (streak > (state.bestStreak || 0)) state.bestStreak = streak;
+  checkPerfectWeek();
+  saveState();
+  renderAll();
+}
+
+function calcStreak() {
+  let streak = 0;
+  let d = new Date();
+  while (true) {
+    const key = d.toISOString().slice(0,10);
+    const done = (state.history[key] || []).length;
+    if (done > 0) { streak++; d.setDate(d.getDate()-1); }
+    else { if (key === todayKey()) { d.setDate(d.getDate()-1); continue; } break; }
+    if (streak > 200) break;
+  }
+  return streak;
+}
+
+function countDoneToday() {
+  return (state.history[todayKey()] || []).length;
+}
+
+function getUnlockedMinutes() {
+  const done = countDoneToday();
+  if (done >= 3) return -1;
+  if (done === 2) return 90;
+  if (done === 1) return 30;
+  return 0;
+}
+
+function getDailyPin() {
+  const done = countDoneToday();
+  if (done === 0) return null;
+  const seed = todayKey().replace(/-/g,'') + '7428';
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) { h = (Math.imul(31, h) + seed.charCodeAt(i)) | 0; }
+  const pin = Math.abs(h) % 900000 + 100000;
+  return pin.toString();
+}
+
+function renderAll() {
+  renderHome();
+  renderRewards();
+  renderProfile();
+}
+
+function renderHome() {
+  const today = new Date();
+  const opts = { weekday:'long', day:'numeric', month:'long' };
+  document.getElementById('home-date').textContent = today.toLocaleDateString('es-SV', opts);
+
+  const done = countDoneToday();
+  const streak = calcStreak();
+  const mins = getUnlockedMinutes();
+
+  document.getElementById('stat-done').textContent = done + '/3';
+  document.getElementById('stat-streak').textContent = streak + '🔥';
+  document.getElementById('stat-unlocked').textContent = mins === -1 ? '∞' : (mins > 0 ? Math.round(mins/60*10)/10 + 'h' : '0h');
+
+  // unlock dots
+  function setDots(id, count, total) {
+    const el = document.getElementById(id);
+    el.innerHTML = '';
+    for (let i = 0; i < total; i++) {
+      const d = document.createElement('div');
+      d.className = 'unlock-dot' + (i < count ? ' lit' : '');
+      el.appendChild(d);
+    }
+  }
+  setDots('ud-1', Math.min(done, 1), 1);
+  setDots('ud-2', Math.min(done, 2), 2);
+  setDots('ud-3', Math.min(done, 3), 3);
+
+  const pin = getDailyPin();
+  const pinEl = document.getElementById('pin-display');
+  const hintEl = document.getElementById('pin-hint');
+  if (pin) {
+    pinEl.textContent = pin;
+    pinEl.className = 'pin-display';
+    hintEl.textContent = done >= 3 ? '🎉 Día perfecto — acceso sin límite' : (done >= 2 ? '90 minutos desbloqueados' : '30 minutos desbloqueados');
+  } else {
+    pinEl.textContent = '••••••';
+    pinEl.className = 'pin-display locked';
+    hintEl.textContent = 'Completa al menos 1 hábito para desbloquear';
+  }
+
+  // shields
+  const sh = state.shields || 2;
+  document.getElementById('shield-1').className = 'shield' + (sh >= 1 ? ' active' : '');
+  document.getElementById('shield-2').className = 'shield' + (sh >= 2 ? ' active' : '');
+  document.getElementById('shield-3').className = 'shield' + (sh >= 3 ? ' active' : '');
+  document.getElementById('shields-info').textContent = sh + ' escudo' + (sh!==1?'s':'') + ' disponible' + (sh!==1?'s':'') + ' · Ganas 1 más por semana perfecta';
+
+  // habits list
+  const list = document.getElementById('habits-list');
+  list.innerHTML = '';
+  const last7 = getLast7();
+
+  HABITS.forEach(h => {
+    const isDone = isHabitDoneToday(h.id);
+    const card = document.createElement('div');
+    card.className = 'habit-card' + (isDone ? ' done' : '');
+
+    const streakDays = last7.filter(d => (state.history[d]||[]).includes(h.id)).length;
+    let actionLabel = isDone ? '✓ Completado' : 'Iniciar sesión';
+
+    const dots = last7.map((d, i) => {
+      const ok = (state.history[d]||[]).includes(h.id);
+      const isToday = d === todayKey();
+      return `<div class="dot ${ok ? 'ok' : (isToday ? 'today-empty' : '')}"></div>`;
+    }).join('');
+
+    card.innerHTML = `
+      <div class="habit-head">
+        <div class="habit-icon">${h.icon}</div>
+        <div class="habit-meta">
+          <div class="habit-name">${h.name}</div>
+          <div class="habit-streak"><span class="streak-fire">🔥</span>${streakDays} días esta semana</div>
+        </div>
+        <div class="habit-action">
+          <button class="start-btn" onclick="openSession('${h.id}')" ${isDone?'disabled':''}>${actionLabel}</button>
+        </div>
+      </div>
+      <div class="dots-row">${dots}</div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function renderRewards() {
+  const done = countDoneToday();
+  const mins = getUnlockedMinutes();
+  document.getElementById('rw-time').textContent = mins === -1 ? 'Sin límite 🎉' : (mins === 0 ? '0 min' : mins + ' min');
+
+  const tiers = [
+    { icon: '📱', name: '1 hábito completado',  time: '30 minutos', earned: done >= 1 },
+    { icon: '📱📱', name: '2 hábitos completados', time: '90 minutos', earned: done >= 2 },
+    { icon: '🏆', name: '3 hábitos — día perfecto', time: 'Sin límite',  earned: done >= 3 },
+  ];
+  const cont = document.getElementById('tier-rows');
+  cont.innerHTML = '';
+  tiers.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'reward-tier' + (t.earned ? ' earned' : '');
+    div.innerHTML = `<div class="rt-icon">${t.icon}</div><div class="rt-info"><div class="rt-name">${t.name}</div></div><div class="rt-time">${t.time}</div>`;
+    cont.appendChild(div);
+  });
+}
+
+function renderProfile() {
+  const streak = calcStreak();
+  const best = state.bestStreak || 0;
+
+  const lvlIdx = LEVELS.findLastIndex(l => best >= l.min);
+  const lvl = LEVELS[Math.max(0,lvlIdx)];
+  const next = LEVELS[Math.min(lvlIdx+1, LEVELS.length-1)];
+  const pct = lvl.max > lvl.min ? Math.min(100, Math.round((best - lvl.min) / (next.max - lvl.min) * 100)) : 100;
+
+  document.getElementById('level-badge').textContent = lvl.icon;
+  document.getElementById('level-name').textContent = lvl.name;
+  document.getElementById('level-sub').textContent = `Racha máxima: ${best} días`;
+  document.getElementById('xp-bar').style.width = pct + '%';
+
+  const grid = document.getElementById('medals-grid');
+  grid.innerHTML = '';
+  MEDALS.forEach(m => {
+    const earned = m.check(state);
+    const div = document.createElement('div');
+    div.className = 'medal' + (earned ? ' earned' : '');
+    div.innerHTML = `<div class="medal-icon">${m.icon}</div><div class="medal-info"><div class="medal-name">${m.name}</div><div class="medal-req">${m.req}</div></div>`;
+    grid.appendChild(div);
+  });
+
+  const nameInput = document.getElementById('username-input');
+  if (state.username) nameInput.value = state.username;
+
+  const urlEl = document.getElementById('share-url');
+  if (state.username) {
+    const base = window.location.href.split('?')[0].split('#')[0];
+    urlEl.textContent = base + '?user=' + encodeURIComponent(state.username);
+  } else {
+    urlEl.textContent = 'Guarda tu nombre para generar el enlace';
+  }
+
+  const msgs = state.messages || [];
+  const msgSec = document.getElementById('msg-sec-title');
+  const msgList = document.getElementById('messages-list');
+  msgSec.style.display = msgs.length ? 'block' : 'none';
+  msgList.innerHTML = '';
+  msgs.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'message-in';
+    div.innerHTML = `<div class="msg-from">💬 De: ${m.from || 'Alguien'}</div><div class="msg-text">${m.text}</div>`;
+    msgList.appendChild(div);
+  });
+}
+
+function saveName() {
+  const val = document.getElementById('username-input').value.trim();
+  if (!val) return;
+  state.username = val;
+  saveState();
+  renderProfile();
+}
+
+function copyShareUrl() {
+  const url = document.getElementById('share-url').textContent;
+  if (url.startsWith('Guarda')) { alert('Primero guarda tu nombre en el perfil.'); return; }
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ Enlace copiado';
+    setTimeout(() => btn.textContent = 'Copiar enlace', 2000);
+  }).catch(() => {
+    prompt('Copia este enlace:', url);
+  });
+}
+
+function goTo(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  document.getElementById('nav-' + screen).classList.add('active');
+  if (screen !== 'session') { stopSession(); }
+  renderAll();
+}
+
+function openSession(habitId) {
+  currentHabitId = habitId;
+  const h = HABITS.find(x => x.id === habitId);
+  document.getElementById('sess-name').textContent = h.name;
+  sessionRunning = false;
+  stepCount = 0;
+  pomoDone = 0;
+  selectedMinutes = h.defaultMin || 20;
+
+  const durSel = document.getElementById('duration-select');
+  const pomoDots = document.getElementById('pomo-dots');
+  const stepsDisp = document.getElementById('steps-display');
+  const stepsGoal = document.getElementById('steps-goal');
+
+  durSel.style.display = 'none';
+  pomoDots.style.display = 'none';
+  stepsDisp.style.display = 'none';
+  stepsGoal.style.display = 'none';
+  document.getElementById('sess-mode-label').textContent = '';
+
+  if (h.mode === 'timer') {
+    durSel.style.display = 'flex';
+    document.getElementById('sess-mode-label').textContent = 'Selecciona duración';
+    durSel.querySelectorAll('.dur-btn').forEach(b => {
+      b.classList.toggle('active', parseInt(b.dataset.min) === selectedMinutes);
+      b.onclick = () => {
+        selectedMinutes = parseInt(b.dataset.min);
+        durSel.querySelectorAll('.dur-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        updateTimerDisplay(selectedMinutes * 60, selectedMinutes * 60);
+      };
+    });
+    updateTimerDisplay(selectedMinutes * 60, selectedMinutes * 60);
+  } else if (h.mode === 'steps') {
+    stepsDisp.style.display = 'block';
+    stepsDisp.textContent = '0 pasos';
+    stepsGoal.style.display = 'block';
+    stepsGoal.textContent = 'Meta: ' + h.stepsGoal + ' pasos';
+    document.getElementById('sess-mode-label').textContent = 'Pedómetro automático';
+    updateTimerDisplay(0, h.stepsGoal, true);
+  } else if (h.mode === 'pomodoro') {
+    pomoGoal = h.pomosGoal;
+    pomoDots.style.display = 'flex';
+    renderPomoDots();
+    document.getElementById('sess-mode-label').textContent = pomoGoal + ' bloques Pomodoro de 25 min';
+    updateTimerDisplay(25 * 60, 25 * 60);
+  }
+
+  document.getElementById('sess-start-btn').textContent = 'Iniciar';
+  document.getElementById('sess-start-btn').disabled = false;
+  goTo('session');
+}
+
+function renderPomoDots() {
+  const cont = document.getElementById('pomo-dots');
+  cont.innerHTML = '';
+  for (let i = 0; i < pomoGoal; i++) {
+    const d = document.createElement('div');
+    d.className = 'pomo-dot' + (i < pomoDone ? ' done' : (i === pomoDone ? ' active' : ''));
+    cont.appendChild(d);
+  }
+}
+
+function updateTimerDisplay(remaining, total, isSteps) {
+  if (isSteps) {
+    const pct = Math.min(stepCount / total, 1);
+    const circumference = 596.9;
+    document.getElementById('ring-prog').style.strokeDashoffset = circumference * (1 - pct);
+    document.getElementById('timer-display').textContent = stepCount;
+    document.getElementById('timer-sub').textContent = 'de ' + total + ' pasos';
+    return;
+  }
+  const m = Math.floor(remaining / 60);
+  const s = remaining % 60;
+  document.getElementById('timer-display').textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  document.getElementById('timer-sub').textContent = remaining === total ? 'listos' : (sessionRunning ? 'en curso' : 'pausado');
+  const pct = total > 0 ? (total - remaining) / total : 0;
+  const circumference = 596.9;
+  document.getElementById('ring-prog').style.strokeDashoffset = circumference * (1 - pct);
+}
+
+function sessionStart() {
+  if (sessionRunning) return;
+  const h = HABITS.find(x => x.id === currentHabitId);
+  sessionRunning = true;
+  document.getElementById('sess-start-btn').textContent = 'En curso...';
+  document.getElementById('sess-start-btn').disabled = true;
+
+  if (h.mode === 'steps') {
+    startStepCounter(h.stepsGoal);
+    return;
+  }
+
+  const isModo = h.mode === 'pomodoro';
+  sessionTotalSeconds = (isModo ? 25 : selectedMinutes) * 60;
+  sessionSeconds = sessionTotalSeconds;
+
+  sessionInterval = setInterval(() => {
+    sessionSeconds--;
+    updateTimerDisplay(sessionSeconds, sessionTotalSeconds);
+    if (sessionSeconds <= 0) {
+      clearInterval(sessionInterval);
+      sessionRunning = false;
+      if (h.mode === 'pomodoro') {
+        pomoDone++;
+        renderPomoDots();
+        if (pomoDone >= pomoGoal) {
+          sessionComplete();
+        } else {
+          document.getElementById('sess-mode-label').textContent = `Bloque ${pomoDone}/${pomoGoal} completado — descansa 5 min`;
+          document.getElementById('sess-start-btn').textContent = 'Siguiente bloque';
+          document.getElementById('sess-start-btn').disabled = false;
+          sessionSeconds = 25 * 60;
+          updateTimerDisplay(sessionSeconds, sessionTotalSeconds);
+        }
+      } else {
+        sessionComplete();
+      }
+    }
+  }, 1000);
+}
+
+function startStepCounter(goal) {
+  stepCount = 0;
+  const stepsDisp = document.getElementById('steps-display');
+  stepsDisp.style.display = 'block';
+
+  if (window.Accelerometer) {
+    let lastMag = 0;
+    let stepThreshold = 12;
+    let lastStep = 0;
+    try {
+      stepSensor = new Accelerometer({ frequency: 20 });
+      stepSensor.onreading = () => {
+        const mag = Math.sqrt(stepSensor.x**2 + stepSensor.y**2 + stepSensor.z**2);
+        const delta = Math.abs(mag - lastMag);
+        const now = Date.now();
+        if (delta > stepThreshold && now - lastStep > 400) {
+          stepCount++;
+          lastStep = now;
+          stepsDisp.textContent = stepCount + ' pasos';
+          updateTimerDisplay(stepCount, goal, true);
+          if (stepCount >= goal) {
+            stepSensor.stop();
+            sessionComplete();
+          }
+        }
+        lastMag = mag;
+      };
+      stepSensor.onerror = () => fallbackStepCounter(goal);
+      stepSensor.start();
+    } catch(e) { fallbackStepCounter(goal); }
+  } else if (window.DeviceMotionEvent) {
+    fallbackStepCounter(goal);
+  } else {
+    manualStepFallback(goal);
+  }
+}
+
+function fallbackStepCounter(goal) {
+  const stepsDisp = document.getElementById('steps-display');
+  let lastAcc = { x: 0, y: 0, z: 0 };
+  let lastStep = 0;
+  const threshold = 3;
+
+  if (typeof DeviceMotionEvent.requestPermission === 'function') {
+    DeviceMotionEvent.requestPermission().then(r => {
+      if (r !== 'granted') { manualStepFallback(goal); return; }
+      setupMotionListener();
+    }).catch(() => manualStepFallback(goal));
+  } else {
+    setupMotionListener();
+  }
+
+  function setupMotionListener() {
+    window.addEventListener('devicemotion', handler);
+  }
+  function handler(e) {
+    const acc = e.accelerationIncludingGravity || e.acceleration;
+    if (!acc) return;
+    const delta = Math.abs((acc.x||0) - lastAcc.x) + Math.abs((acc.y||0) - lastAcc.y) + Math.abs((acc.z||0) - lastAcc.z);
+    const now = Date.now();
+    if (delta > threshold && now - lastStep > 350) {
+      stepCount++;
+      lastStep = now;
+      stepsDisp.textContent = stepCount + ' pasos';
+      updateTimerDisplay(stepCount, goal, true);
+      if (stepCount >= goal) {
+        window.removeEventListener('devicemotion', handler);
+        sessionComplete();
+      }
+    }
+    lastAcc = { x: acc.x||0, y: acc.y||0, z: acc.z||0 };
+  }
+}
+
+function manualStepFallback(goal) {
+  document.getElementById('sess-mode-label').textContent = 'Sensor no disponible — toca cada 2 pasos';
+  const btn = document.getElementById('sess-start-btn');
+  btn.textContent = 'Toca para contar pasos';
+  btn.disabled = false;
+  const stepsDisp = document.getElementById('steps-display');
+  btn.onclick = () => {
+    stepCount += 2;
+    stepsDisp.textContent = stepCount + ' pasos';
+    updateTimerDisplay(stepCount, goal, true);
+    if (stepCount >= goal) { btn.onclick = null; sessionComplete(); }
+  };
+}
+
+function sessionCancel() {
+  stopSession();
+  goTo('home');
+}
+
+function stopSession() {
+  if (sessionInterval) clearInterval(sessionInterval);
+  sessionInterval = null;
+  sessionRunning = false;
+  if (stepSensor) { try { stepSensor.stop(); } catch(e){} stepSensor = null; }
+  window.removeEventListener('devicemotion', ()=>{});
+}
+
+function sessionComplete() {
+  stopSession();
+  markHabitDone(currentHabitId);
+  const h = HABITS.find(x => x.id === currentHabitId);
+  const done = countDoneToday();
+  const overlay = document.getElementById('success-overlay');
+  document.getElementById('overlay-icon').textContent = done >= 3 ? '🏆' : done >= 2 ? '🎯' : '✅';
+  document.getElementById('overlay-title').textContent = done >= 3 ? '¡Día perfecto!' : '¡Hábito completado!';
+  const pin = getDailyPin();
+  const mins = getUnlockedMinutes();
+  let sub = `${h.name} completado.\n`;
+  if (pin) sub += `Tu PIN de hoy: ${pin}`;
+  if (mins === -1) sub += `\n🎉 Tienes acceso sin límite hoy.`;
+  else if (mins > 0) sub += `\nGanaste ${mins} minutos de redes.`;
+  document.getElementById('overlay-sub').textContent = sub;
+  overlay.classList.add('show');
+}
+
+function closeOverlay() {
+  document.getElementById('success-overlay').classList.remove('show');
+  goTo('rewards');
+}
+
+function checkPerfectWeek() {
+  const last7 = getLast7();
+  const allPerfect = last7.every(d => (state.history[d]||[]).length >= 3);
+  if (allPerfect) {
+    if (!state._lastPerfectWeek || state._lastPerfectWeek !== last7[6]) {
+      state.perfectWeeks = (state.perfectWeeks || 0) + 1;
+      state.shields = Math.min((state.shields || 0) + 1, 3);
+      state._lastPerfectWeek = last7[6];
+    }
+  }
+}
+
+// PUBLIC SHARE PAGE
+function checkSharePage() {
+  const params = new URLSearchParams(window.location.search);
+  const user = params.get('user');
+  if (!user) return;
+  document.body.innerHTML = buildSharePage(user);
+}
+
+function buildSharePage(user) {
+  const saved = (() => { try { return JSON.parse(localStorage.getItem('hf_state')); } catch{} return null; })();
+  const isOwner = saved && saved.username && saved.username.toLowerCase() === user.toLowerCase();
+  if (!isOwner) {
+    return `<div style="font-family:'DM Sans',sans-serif;background:#0a0a0a;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;color:#f0ede8;text-align:center">
+      <div style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:#b8f058;margin-bottom:8px">Habit<span style="color:#f0ede8">Forge</span></div>
+      <div style="font-size:18px;margin-bottom:4px">Tablero de <strong>${user}</strong></div>
+      <div style="font-size:13px;color:#888;margin-bottom:32px">Progreso en tiempo real</div>
+      <div style="background:#141414;border:1px solid #2a2a2a;border-radius:12px;padding:20px;max-width:320px;width:100%">
+        <div style="font-size:13px;color:#888;margin-bottom:16px">Para ver el progreso de ${user}, pídele que comparta su tablero.</div>
+        <a href="${window.location.href.split('?')[0]}" style="display:block;padding:12px;background:#b8f058;color:#0a0a0a;border-radius:8px;text-decoration:none;font-family:'Syne',sans-serif;font-weight:700;font-size:14px">Crear mi HabitForge</a>
+      </div>
+      <div style="margin-top:24px;font-size:11px;color:#555">Para dejar un mensaje de apoyo, pídele a ${user} tu contacto.</div>
+    </div>`;
+  }
+  return '';
+}
+
+checkSharePage();
+renderAll();
+</script>
+</body>
+</html>
